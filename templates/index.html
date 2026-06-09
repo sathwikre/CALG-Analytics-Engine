@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CALG Coefficient Generator</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --surface-2: #f2f4f7;
+      --border: rgba(0,0,0,0.07);
+      --border-focus: #3b6bdf;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent: #3b6bdf;
+      --accent-hover: #2d58c8;
+      --accent-light: #eef2fd;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top nav */
+    .nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-logo {
+      width: 30px;
+      height: 30px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 28px 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Section heading */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 20px 24px;
+    }
+
+    .card + .card {
+      margin-top: 16px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 1.5px dashed rgba(59, 107, 223, 0.25);
+      border-radius: var(--radius);
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: linear-gradient(180deg, rgba(59,107,223,0.02) 0%, transparent 100%);
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .upload-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius);
+      background: var(--accent-light);
+      display: inline-grid;
+      place-items: center;
+      margin-bottom: 12px;
+    }
+
+    .upload-icon-wrap svg {
+      color: var(--accent);
+    }
+
+    .upload-headline {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .upload-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .upload-sub button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .file-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 5px 10px;
+      background: var(--accent-light);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Controls row */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"] {
+      font-family: var(--sans);
+      width: 80px;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--border-focus);
+      background: white;
+    }
+
+    .controls-hint {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      height: 36px;
+      padding: 0 18px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-ghost {
+      height: 32px;
+      padding: 0 12px;
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .btn-ghost:hover { background: var(--border); color: var(--text-primary); }
+
+    .btn-accent-ghost {
+      height: 32px;
+      padding: 0 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid rgba(59,107,223,0.15);
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.12s;
+    }
+
+    .btn-accent-ghost:hover { background: rgba(59,107,223,0.1); }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .status-dot.active { background: var(--accent); animation: pulse 1.4s infinite; }
+    .status-dot.done { background: var(--success); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 3px;
+      background: var(--surface-2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.22s ease;
+    }
+
+    /* Results card */
+    .results-card {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .results-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .results-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .results-title .check-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--success-light);
+      display: grid;
+      place-items: center;
+      color: var(--success);
+    }
+
+    .results-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .results-meta span {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Preview tabs */
+    .preview-bar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--surface-2);
+    }
+
+    .tab-group {
+      display: flex;
+      gap: 2px;
+      background: var(--border);
+      padding: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .tab {
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.12s;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    .preview-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select#outputSelect {
+      font-family: var(--sans);
+      height: 30px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table.preview-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.preview-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    table.preview-table td {
+      padding: 9px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    table.preview-table tr:last-child td { border-bottom: none; }
+
+    table.preview-table td:first-child {
+      font-family: var(--sans);
+      font-size: 13px;
+    }
+
+    table.preview-table tr:hover td { background: var(--accent-light); }
+
+    /* Equation display */
+    .equation-box {
+      padding: 20px 24px;
+    }
+
+    .equation-text {
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text-primary);
+      color: white;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.22s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .main { padding: 16px; }
+      .nav { padding: 0 16px; }
+      .controls-row { flex-direction: column; align-items: stretch; }
+      .btn-primary { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="nav-logo">CG</div>
+      <div class="nav-title">CALG Coefficient Generator</div>
+      <div class="nav-badge">Internal Tool</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted)">Generate equations & coefficients from CALG exports</div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Upload card -->
+    <div class="card">
+      <div class="card-body">
+        <div class="section-label">Import data</div>
+
+        <div class="upload-zone" id="dropzone">
+          <div class="upload-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="upload-headline">Drop your Excel file here</div>
+          <div class="upload-sub">or <button type="button" id="browseBtn">browse to upload</button> &nbsp;·&nbsp; .xlsx, .xls supported</div>
+          <div class="file-info" id="fileInfo" style="display:none">
+            <div class="file-pill" id="filePill">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span id="fileName">—</span>
+            </div>
+          </div>
+        </div>
+
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" />
+
+        <!-- Controls -->
+        <div class="controls-row">
+          <div class="field-group">
+            <div class="field-label">Output columns</div>
+            <input type="number" id="outputCount" min="1" value="1" title="Number of output columns">
+          </div>
+          <div class="controls-hint">First N columns in the file will be treated as output variables. The remaining columns are inputs.</div>
+          <button type="button" class="btn-primary" id="generateBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Generate
+          </button>
+        </div>
+
+        <!-- Status -->
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Ready. Upload a CALG Excel file to begin.</span>
+        </div>
+
+        <div class="progress-track" id="progressWrap">
+          <div class="progress-fill" id="progressInner"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card results-card" id="resultsCard">
+      <div class="results-header">
+        <div class="results-title">
+          <div class="check-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          Results ready
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="results-meta">Outputs: <span id="resOutputs">—</span> &nbsp; File: <span id="resFile">—</span></div>
+          <button type="button" class="btn-primary" id="downloadBtn" style="height:32px;padding:0 14px;font-size:12px">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download workbook
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview tabs bar -->
+      <div class="preview-bar">
+        <div class="tab-group">
+          <div class="tab active" data-tab="summary">Summary</div>
+          <div class="tab" data-tab="coeff">Coefficients</div>
+          <div class="tab" data-tab="eqn">Equation</div>
+        </div>
+        <div class="preview-controls">
+          <select id="outputSelect"></select>
+          <button type="button" class="btn-accent-ghost" id="copyEqBtn" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy equation
+          </button>
+        </div>
+      </div>
+
+      <!-- Table / Equation preview -->
+      <div id="previewArea">
+        <div class="table-wrap">
+          <table class="preview-table" id="previewTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+    </div><!-- /results -->
+
+    <div style="margin-top:20px;font-size:12px;color:var(--text-muted)">
+      Tip: Ensure your CALG export has output columns first, followed by input features.
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="ui_toast"></div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
