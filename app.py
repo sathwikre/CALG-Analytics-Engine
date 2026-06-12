@@ -65,22 +65,19 @@ def create_summary_row(output_column, model_type, y, y_pred):
 
 def create_summary_rows(output_column, X, y):
     highest_degree = min(10, max(get_term_degree(column) for column in X.columns))
-    summary_rows = []
 
-    for degree in range(1, highest_degree + 1):
-        degree_columns = [
-            column
-            for column in X.columns
-            if get_term_degree(column) <= degree
-        ]
-        degree_model = LinearRegression()
-        degree_model.fit(X[degree_columns], y)
-        degree_pred = degree_model.predict(X[degree_columns])
-        summary_rows.append(
-            create_summary_row(output_column, f"Degree {degree}", y, degree_pred)
-        )
+    # Produce summary only for the highest detected degree (not incremental degrees)
+    degree = highest_degree
+    degree_columns = [
+        column
+        for column in X.columns
+        if get_term_degree(column) <= degree
+    ]
+    degree_model = LinearRegression()
+    degree_model.fit(X[degree_columns], y)
+    degree_pred = degree_model.predict(X[degree_columns])
 
-    return summary_rows
+    return [create_summary_row(output_column, f"Degree {degree}", y, degree_pred)]
 
 
 def apply_summary_formatting(worksheet, summary_rows_count):
